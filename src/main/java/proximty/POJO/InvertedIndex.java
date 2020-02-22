@@ -7,7 +7,7 @@ import java.util.*;
 
 /**
  * 
- * @author Divyavijay Sahay
+ * @author Senhao WANG
  *
  */
 public class InvertedIndex extends TreeMap<String, InvertedList> {
@@ -288,26 +288,42 @@ public class InvertedIndex extends TreeMap<String, InvertedList> {
 	 * Create an InvertedIndex from the content of the given file.
 	 * 
 	 */
-	public void createFromFile(File invertedIndexFile) {
+	public void createFromFile(File invertedIndexFile, String[] term_list) {
+//
+//		for(int i=0;i<term_list.length;i++){
+//			List<String> data = Arrays.asList(term_list[i].split(" "));
+//			Iterator<String> lineIterator = data.iterator();
+//			this.put(lineIterator.next(), getValue(lineIterator));
+//		}
+		int i=0;
+		while (i<term_list.length){
+			List<String> data = Arrays.asList(term_list[i].split(" "));
+			Iterator<String> lineIterator = data.iterator();
 
-		try {
-			fileContent = new BufferedReader(new FileReader(invertedIndexFile));
-			String line = fileContent.readLine();
-			
-			while (line != null) {
-				List<String> data = Arrays.asList(line.split(" "));
-//				LinkedHashSet<String> dataSet = new LinkedHashSet<String>(data);
-				Iterator<String> lineIterator = data.iterator();
-				
-				this.put(lineIterator.next(), getValue(lineIterator));
-				line = fileContent.readLine();
-			}
-
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
+			this.put(lineIterator.next(), getValue(lineIterator));
+			i++;
 		}
+//		try {
+//
+//			fileContent = new BufferedReader(new FileReader(invertedIndexFile));
+//
+//			String line = fileContent.readLine();
+//
+//			while (line != null) {
+//				List<String> data = Arrays.asList(line.split(" "));
+////				LinkedHashSet<String> dataSet = new LinkedHashSet<String>(data);
+//				Iterator<String> lineIterator = data.iterator();
+//
+//				this.put(lineIterator.next(), getValue(lineIterator));
+//				line = fileContent.readLine();
+//			}
+//
+//
+//		} catch (FileNotFoundException e) {
+//			e.printStackTrace();
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
 	}
 
 	/**

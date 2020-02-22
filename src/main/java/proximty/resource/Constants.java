@@ -4,7 +4,7 @@ import java.io.File;
 
 /**
  * 
- * @author Divyavijay Sahay
+ * @author Senhao WANG
  *
  */
 public class Constants {

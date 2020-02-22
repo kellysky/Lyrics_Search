@@ -7,7 +7,7 @@ import java.util.TreeMap;
 
 /**
  * 
- * @author Divyavijay Sahay
+ * @author Senhao WANG
  *
  */
 public class InvertedList extends TreeMap<String,PostingData> {

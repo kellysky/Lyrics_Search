@@ -127,14 +127,22 @@ public class LyricsController {
        if (temp_query!="") {
            System.out.println("path one");
            String term = query_preprocess(temp_query, preprocess_url);
-           term = create_index(term, index_url);
+           String regex="[,\"\"]+";
+           term=term.replaceAll(regex," ");
+           term=term.replaceAll("[\\[\\]]","");
+           term=term.trim();
+
+           //index list
+           String[] term_list = create_index(term, index_url);
            System.out.println(term);
+
+
 
            // Querys containing all the query present in the file at the location
            // specified by the Query_path constant.
            Querys querys = new Querys(Constants.QUERY_PATH);
            //System.out.println(term);
-           lyrics_set = runSearchEngine(querys, RetrievalModel.PROXIMITY_SCORE, term);
+           lyrics_set = runSearchEngine(querys, RetrievalModel.PROXIMITY_SCORE, term,term_list);
 
 
            for (int i = 0; i < song_set.size(); i++) {
@@ -176,6 +184,29 @@ public class LyricsController {
        }
     }
 
+    @RequestMapping(value="/test",method =RequestMethod.GET)
+    @ResponseBody
+    public void  test(@RequestParam(value = "query")String query){
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+        String regex="[,\"\"]+";
+        query=query.replaceAll(regex," ");
+        query=query.replaceAll("[\\[\\]]","");
+        query=query.trim();
+        //System.out.println(term+" create_index");
+        JSONObject param = new JSONObject();
+        param.clear();
+        param.put("query",query);
+        HttpEntity<String>  entity=new HttpEntity<>(param.toJSONString(),httpHeaders);
+        HttpEntity<String> response=restTemplate.exchange(index_url,HttpMethod.POST,entity,String.class);
+        JSONObject jsonObject=JSON.parseObject(response.getBody());
+
+        String term=jsonObject.getString("ans");
+        System.out.println(term);
+        String[] term_list=term.split(",");
+        System.out.println(term_list[0]);
+    }
+
 
     private ArrayList<Song> collect_songs(ArrayList<Song> songs1,ArrayList<Song> songs2){
         ArrayList<Song> common=new ArrayList<>();
@@ -200,45 +231,36 @@ public class LyricsController {
         HttpEntity<String> entity = new HttpEntity<>(param.toJSONString(), httpHeaders);
         HttpEntity<String> response = restTemplate.exchange(url, HttpMethod.POST , entity , String.class);
         JSONObject jsonObject=JSON.parseObject(response.getBody());
+        //System.out.println(jsonObject.size());
         String term=jsonObject.getString("ans");
         return term;
     }
 
-    private String create_index(String term,String url){
+    private String[] create_index(String term,String url){
 
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-        String regex="[,\"\"]+";
-        term=term.replaceAll(regex," ");
-        term=term.replaceAll("[\\[\\]]","");
-        term=term.trim();
-        //System.out.println(term+" create_index");
         JSONObject param = new JSONObject();
         param.clear();
         param.put("query",term);
         HttpEntity<String>  entity=new HttpEntity<>(param.toJSONString(),httpHeaders);
         HttpEntity<String> response=restTemplate.exchange(url,HttpMethod.POST,entity,String.class);
-        return  term;
+
+        JSONObject jsonObject=JSON.parseObject(response.getBody());
+        String term_response=jsonObject.getString("ans");
+        term_response=term_response.replace("\"","");
+        String[] term_list=term_response.split(",");
+        //System.out.println(term_list[2]);
+        return  term_list;
     }
 
-    private static ArrayList<String> runSearchEngine(Querys querys, RetrievalModel model,String term) {
+    private static ArrayList<String> runSearchEngine(Querys querys, RetrievalModel model,String term,String[] term_list) {
 
-        SearchEngine searchEngine = new SearchEngine(model);
+        SearchEngine searchEngine = new SearchEngine(model,term_list);
         searchEngine.setDisplayResults(true);
         RankedDocuments rankedDocuments=searchEngine.search(querys,10,term);
 
         Set<String> keys = rankedDocuments.keySet();
-        /*
-        Iterator<String> iterator = keys.iterator();
-        int count = 0;
-        // System.out.println(keys.size());
-        while (iterator.hasNext()) {
-            count++;
-            String docID = iterator.next();
-            System.out.println(count + ". " + docID + " - " + rankedDocuments.get(docID));
-        }
-        displayTime();
-        */
          return new ArrayList<String>(keys);
     }
 

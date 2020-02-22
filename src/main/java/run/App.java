@@ -24,13 +24,14 @@ public class App {
 		System.out.println("***************************************");
 		System.out.println("  SEARCH ENGINE, PROXIMITY SCORE RETRIEVAL MODEL  ");
 		System.out.println("***************************************");
-		runSearchEngine(querys, RetrievalModel.PROXIMITY_SCORE);
+		String[] term_list = null;
+		runSearchEngine(querys, RetrievalModel.PROXIMITY_SCORE,term_list);
 
 	}
 
-	private static void runSearchEngine(Querys querys, RetrievalModel model) {
+	private static void runSearchEngine(Querys querys, RetrievalModel model,String[] term_list) {
 
-		SearchEngine searchEngine = new SearchEngine(model);
+		SearchEngine searchEngine = new SearchEngine(model,term_list);
 		searchEngine.setDisplayResults(true);
 		 RankedDocuments rankedDocuments=searchEngine.search(querys,10,"隔壁 国术 馆");
 

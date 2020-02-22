@@ -3,9 +3,9 @@ package proximty.POJO;
 import java.util.LinkedHashSet;
 
 /**
- * @Date : Dec 5, 2017
+ * @Date : Feb 23, 2020
  *
- * @Author: Divyavijay Sahay  
+ * @Author: Senhao WANG
  */
 
 public class PostingData {

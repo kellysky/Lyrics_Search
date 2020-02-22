@@ -10,7 +10,7 @@ import java.util.StringTokenizer;
 
 /**
  * 
- * @author Divyavijay Sahay
+ * @author Senhao WANG
  *
  */
 public class Querys {

@@ -5,6 +5,15 @@ public class Song {
     public String singer;
     public String song_name;
     public String content;
+    public String real_content;
+
+    public String getReal_content() {
+        return real_content;
+    }
+
+    public void setReal_content(String real_content) {
+        this.real_content = real_content;
+    }
 
     public int getId() {
         return id;

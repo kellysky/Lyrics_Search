@@ -13,7 +13,7 @@ import java.util.*;
 
 /**
  * 
- * @author Divyavijay Sahay
+ * @author Senhao WANG
  *
  */
 public class TextFile {

@@ -5,7 +5,7 @@ import java.util.LinkedHashMap;
 /**
  * A set containing the QueryTerms
  * 
- * @author Divyavijay Sahay
+ * @author Senhao WANG
  *
  */
 public class QueryTermMap extends LinkedHashMap<String, QueryTerm> {

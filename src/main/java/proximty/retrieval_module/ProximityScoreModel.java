@@ -10,9 +10,9 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
- * @Date : Dec 7, 2017
+ * @Date : Feb 23, 2020
  *
- * @Author: Divyavijay Sahay
+ * @Author: Senhao WANG
  */
 
 public class ProximityScoreModel {

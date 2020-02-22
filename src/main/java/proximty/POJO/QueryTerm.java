@@ -2,7 +2,7 @@ package proximty.POJO;
 
 /**
  * 
- * @author Divyavijay Sahay
+ * @author Senhao WANG
  *
  */
 public class QueryTerm {

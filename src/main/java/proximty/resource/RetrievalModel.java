@@ -3,7 +3,7 @@ package proximty.resource;
 /**
  * Enumeration for the possible Retrieval Models in this project.
  * 
- * @author Divyavijay Sahay
+ * @author Senhao WANG
  *
  */
 public enum RetrievalModel {

@@ -8,7 +8,7 @@ import java.util.Set;
 /**
  * @Date : Dec 10, 2017
  *
- * @Author: Divyavijay Sahay
+ * @Author: Senhao WANG
  */
 
 public class Soundex {

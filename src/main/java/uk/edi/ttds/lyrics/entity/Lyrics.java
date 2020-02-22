@@ -3,6 +3,15 @@ package uk.edi.ttds.lyrics.entity;
 public class Lyrics {
     public int id;
     public String singer;
+    public String real_content;
+
+    public String getReal_content() {
+        return real_content;
+    }
+
+    public void setReal_content(String real_content) {
+        this.real_content = real_content;
+    }
 
     public String getSong_name() {
         return song_name;

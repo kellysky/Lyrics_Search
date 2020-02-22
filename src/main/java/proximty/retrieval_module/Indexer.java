@@ -112,12 +112,12 @@ public class Indexer {
 	 * Generate the n-gram inverted index if not already generated, otherwise generated the inverted index from the
 	 * present file. It may or may not support proximity search depending on the supportPrxoimitySearch value
 	 * 
-	 * @param ngram
+	 * @param
 	 *            : value of n
 	 * @param supportPrxoimitySearch
 	 *            : true if proximity search enabled
 	 */
-	public void generate(int n, boolean supportPrxoimitySearch) {
+	public void generate(int n, boolean supportPrxoimitySearch,String[] term_list) {
 
 		// Initialize data structures
 		invertedIndex.clear();
@@ -137,7 +137,7 @@ public class Indexer {
 			this.invertedIndexFile = TextFile.getFile(invertedIndexFileName, Constants.EXTENSION_TXT);
 			this.metaDataFile = TextFile.getFile(metaDataFileName, Constants.EXTENSION_TXT);
 
-			this.invertedIndex.createFromFile(invertedIndexFile);
+			this.invertedIndex.createFromFile(invertedIndexFile,term_list);
 			this.metaData.creatFromFile(metaDataFile);
 			this.totalNoOfTokens = this.metaData.get(TOTAL_TOKENS);
 			this.corpusSize = this.metaData.get(CORPUS_SIZE);

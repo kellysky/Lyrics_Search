@@ -68,10 +68,10 @@ public class SearchEngine {
 	/**
 	 * Constructor for this Search engine.
 	 */
-	public SearchEngine(RetrievalModel retrievalModel) {
+	public SearchEngine(RetrievalModel retrievalModel,String[] term_list) {
 		this.retrievalModel = retrievalModel;
 		this.indexer = new Indexer();
-		this.indexer.generate(1, true);
+		this.indexer.generate(1, true,term_list);
 	}
 
 	/**
