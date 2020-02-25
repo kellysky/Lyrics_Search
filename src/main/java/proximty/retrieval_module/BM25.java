@@ -175,6 +175,7 @@ public class BM25 {
 	private float getBM25Score(String docID) {
 		float score = 0.0f;
 		int fi = 0;
+		//System.out.println(docID);
 		float k = getK(this.metadata.get(docID));
 
 		Set<String> queryTermSet = this.queryTermMap.keySet();

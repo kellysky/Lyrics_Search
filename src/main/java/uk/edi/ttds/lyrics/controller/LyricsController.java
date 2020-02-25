@@ -8,6 +8,7 @@ import javafx.beans.binding.IntegerBinding;
 import org.apache.tomcat.util.json.JSONParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.ArrayOperators;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -15,6 +16,8 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.ModelAndViewDefiningException;
 import proximty.POJO.Querys;
 import proximty.POJO.RankedDocuments;
 import proximty.resource.Constants;
@@ -27,17 +30,20 @@ import uk.edi.ttds.lyrics.mongo_entity.*;
 import uk.edi.ttds.lyrics.service.SingerService;
 import uk.edi.ttds.lyrics.service.Song_nameService;
 
+import javax.servlet.http.HttpSession;
 import java.util.*;
 
 
 @Controller
 @RequestMapping("/search")
 public class LyricsController {
-    private String  preprocess_url="http://127.0.0.1:5000/api/preprocess";
+    private String  preprocess_url="http://8.209.68.61:5000/api/preprocess";
 
-    private String index_url="http://127.0.0.1:5000/api/index";
+    private String index_url="http://8.209.68.61:5000/api/index";
 
-    private static long startTime = System.currentTimeMillis();
+    private String metadata_url="http://8.209.68.61:5000/api/metadata";
+
+    //private static long startTime = System.currentTimeMillis();
 
     @Autowired
     private MongoTemplate mongoTemplate;
@@ -56,22 +62,36 @@ public class LyricsController {
 
     public ArrayList<Song> songs;
 
-    @RequestMapping("/insert")
-    public String insert(){
-        Doc d=new Doc();
-        d.setDocument_id("001");
-        d.setId("000");
-        d=mongoTemplate.insert(d);
-        if(d!=null){
-            return "success";
-        }else {
-            return "false";
-        }
+
+    public ModelAndView modelAndView;
+
+    public ArrayList<Song> final_result;
+
+    public ArrayList<Song> result_single_page;
+
+    public int page_num;
+
+    public int result_size;
+
+    public String user_query;
+
+    public static HashMap<String,ArrayList<Song>> map=new HashMap<>();
+
+
+    @RequestMapping(value="/index")
+    public String index(){
+        return "mainpage";
     }
 
-    @RequestMapping(value = "/query",method = RequestMethod.GET)
+    @RequestMapping(value = "/query.action",method = RequestMethod.POST)
     @ResponseBody
-    public void query(@RequestParam(value = "query")String query) throws JSONException {
+    public ModelAndView query(@RequestParam(value = "query")String query) throws JSONException {
+        long startTime = System.currentTimeMillis();
+
+        modelAndView=new ModelAndView();
+        user_query=query;
+
+
         RestTemplate restTemplate=new RestTemplate();
         ArrayList<Song> song_set=new ArrayList<>();
         ArrayList<Song> singer_set=new ArrayList<>();
@@ -81,19 +101,24 @@ public class LyricsController {
 
         ArrayList<String> lyrics_set=null;
         ArrayList<String> result=new ArrayList<>();
+        final_result=new ArrayList<>();
+        result_single_page=new ArrayList<>();
+
+
+
         //split query by space
         String[] list=query.split(" ");
 
         //iterate the list of query and  search it in the order of singer> song > lyrics
+        long start= System.currentTimeMillis();
 
         for(int i=0;i<list.length;i++){
-
             songs= (ArrayList<Song>) singerService.findSongsBySinger(list[i]);
+            displayTime(start);
             if (!songs.isEmpty()){
                 for(int j=0;j<songs.size();j++){
                     if (!singer_set.contains(songs.get(j)))singer_set.add(songs.get(j));
                 }
-                //song_set=collect_songs(song_set,songs);
                 non_lyrics_list.add(i);
 
             }else {
@@ -103,13 +128,14 @@ public class LyricsController {
                     for(int j=0;j<songs.size();j++){
                         if (!song_name_set.contains(songs.get(j)))song_name_set.add(songs.get(j));
                     }
-                 //song_set=collect_songs(song_set,songs);
                  non_lyrics_list.add(i);
 
                 }
             }
         }
         song_set=collect_songs(singer_set,song_name_set);
+
+        //displayTime(start);
 
 
         /*
@@ -125,7 +151,7 @@ public class LyricsController {
 
 
        if (temp_query!="") {
-           System.out.println("path one");
+
            String term = query_preprocess(temp_query, preprocess_url);
            String regex="[,\"\"]+";
            term=term.replaceAll(regex," ");
@@ -134,29 +160,36 @@ public class LyricsController {
 
            //index list
            String[] term_list = create_index(term, index_url);
-           System.out.println(term);
 
+
+           //metada list
+           String metadata=create_metadata(metadata_url);
 
 
            // Querys containing all the query present in the file at the location
            // specified by the Query_path constant.
            Querys querys = new Querys(Constants.QUERY_PATH);
-           //System.out.println(term);
-           lyrics_set = runSearchEngine(querys, RetrievalModel.PROXIMITY_SCORE, term,term_list);
 
+
+
+           lyrics_set = runSearchEngine(querys, RetrievalModel.PROXIMITY_SCORE, term,term_list,metadata);
 
            for (int i = 0; i < song_set.size(); i++) {
                if (lyrics_set.contains(Integer.toString(song_set.get(i).getId()))) {
                    result.add(Integer.toString(song_set.get(i).getId()));
                }
            }
-
            if (result.size() == 0) {
                result = lyrics_set;
            }
-           for (int i = 0; i < result.size(); i++) {
-               System.out.println(result.get(i));
+
+           start=System.currentTimeMillis();
+
+           if (result.size()!=0) {
+               final_result = singerService.findSongById(result);
            }
+           displayTime(start);
+
        }else {
            if (song_set.size()==0){
                if (singer_set.size()>song_name_set.size()){
@@ -179,32 +212,79 @@ public class LyricsController {
            }
 
            for (int i = 0; i < song_set.size(); i++) {
-               System.out.println(song_set.get(i).getSong_name()+" "+song_set.get(i).getSinger());
+               final_result.add(song_set.get(i));
            }
        }
+
+       page_num=final_result.size()/4+1;
+       if (final_result.size()>4) {
+           for (int i = 0; i < 4; i++) {
+               result_single_page.add(final_result.get(i));
+           }
+           modelAndView.addObject("song_list",result_single_page);
+       }else {
+           modelAndView.addObject("song_list",final_result);
+       }
+
+       result_size=final_result.size();
+       modelAndView.addObject("page_num",page_num);
+        modelAndView.addObject("result_size",result_size);
+        modelAndView.addObject("user_query",user_query);
+       modelAndView.setViewName("resultpage");
+
+        displayTime(startTime);
+        if (map.containsKey(user_query)) {
+            map.remove(user_query);
+
+        }
+        map.put(user_query, final_result);
+       return modelAndView;
     }
 
-    @RequestMapping(value="/test",method =RequestMethod.GET)
+    @RequestMapping(value="transferpage.action",method =RequestMethod.POST)
     @ResponseBody
-    public void  test(@RequestParam(value = "query")String query){
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-        String regex="[,\"\"]+";
-        query=query.replaceAll(regex," ");
-        query=query.replaceAll("[\\[\\]]","");
-        query=query.trim();
-        //System.out.println(term+" create_index");
-        JSONObject param = new JSONObject();
-        param.clear();
-        param.put("query",query);
-        HttpEntity<String>  entity=new HttpEntity<>(param.toJSONString(),httpHeaders);
-        HttpEntity<String> response=restTemplate.exchange(index_url,HttpMethod.POST,entity,String.class);
-        JSONObject jsonObject=JSON.parseObject(response.getBody());
+    public ModelAndView transfer_page(@RequestParam(value = "page")String page,@RequestParam(value ="truequery")String truequery){
+        modelAndView=new ModelAndView();
+        final_result=map.get(truequery);
 
-        String term=jsonObject.getString("ans");
-        System.out.println(term);
-        String[] term_list=term.split(",");
-        System.out.println(term_list[0]);
+
+
+        int num= Integer.valueOf(page);
+        int total_page_num=final_result.size()/4+1;
+
+        result_single_page=new ArrayList<>();
+        for (int i=0;i<4;i++){
+            if (((num-1)*4+i)<=(final_result.size()-1)) {
+
+                result_single_page.add(final_result.get((num - 1) * 4 + i));
+            }
+        }
+
+
+        modelAndView.addObject("song_list",result_single_page);
+        modelAndView.addObject("page_num",page_num);
+        modelAndView.addObject("user_query",truequery);
+        modelAndView.addObject("result_size",String.valueOf(final_result.size()));
+        modelAndView.setViewName("resultpage");
+        return modelAndView;
+    }
+
+    @RequestMapping(value = "showLyrics.action",method = RequestMethod.POST)
+    @ResponseBody
+    public ModelAndView showLyrics(@RequestParam(value = "song_id")String song_id,@RequestParam(value ="postquery")String postquery){
+        modelAndView=new ModelAndView();
+        final_result=map.get(postquery);
+        for (int i=0;i<final_result.size();i++){
+            if (final_result.get(i).getId()==Integer.parseInt(song_id)){
+                String[] lyrics=final_result.get(i).getReal_content().split(" ");
+                modelAndView.addObject("Lyrics",lyrics);
+                modelAndView.addObject("singer",final_result.get(i).getSinger());
+                modelAndView.addObject("song_name",final_result.get(i).getSong_name());
+                break;
+            }
+        }
+        modelAndView.setViewName("lyric");
+        return modelAndView;
     }
 
 
@@ -227,11 +307,11 @@ public class LyricsController {
         httpHeaders.setContentType(MediaType.APPLICATION_JSON);
         JSONObject param = new JSONObject();
         param.put("query" ,"["+query+"]");
-       // System.out.println(param.toJSONString());
+
         HttpEntity<String> entity = new HttpEntity<>(param.toJSONString(), httpHeaders);
         HttpEntity<String> response = restTemplate.exchange(url, HttpMethod.POST , entity , String.class);
         JSONObject jsonObject=JSON.parseObject(response.getBody());
-        //System.out.println(jsonObject.size());
+
         String term=jsonObject.getString("ans");
         return term;
     }
@@ -247,18 +327,38 @@ public class LyricsController {
         HttpEntity<String> response=restTemplate.exchange(url,HttpMethod.POST,entity,String.class);
 
         JSONObject jsonObject=JSON.parseObject(response.getBody());
+
         String term_response=jsonObject.getString("ans");
         term_response=term_response.replace("\"","");
         String[] term_list=term_response.split(",");
-        //System.out.println(term_list[2]);
+
         return  term_list;
     }
 
-    private static ArrayList<String> runSearchEngine(Querys querys, RetrievalModel model,String term,String[] term_list) {
+    //tis fucntion is to generate all metadata list from python api
+    private String create_metadata(String metadata_url){
+        String metadata=null;
 
-        SearchEngine searchEngine = new SearchEngine(model,term_list);
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+        JSONObject param = new JSONObject();
+        param.clear();
+        param.put("query","metadata");
+        HttpEntity<String>  entity=new HttpEntity<>(param.toJSONString(),httpHeaders);
+        HttpEntity<String> response=restTemplate.exchange(metadata_url,HttpMethod.POST,entity,String.class);
+
+        JSONObject jsonObject=JSON.parseObject(response.getBody());
+        metadata=jsonObject.getString("ans");
+        metadata=metadata.replace("\"","");
+
+        return metadata;
+    }
+
+    private static ArrayList<String> runSearchEngine(Querys querys, RetrievalModel model,String term,String[] term_list,String metadata) {
+
+        SearchEngine searchEngine = new SearchEngine(model,term_list,metadata);
         searchEngine.setDisplayResults(true);
-        RankedDocuments rankedDocuments=searchEngine.search(querys,10,term);
+        RankedDocuments rankedDocuments=searchEngine.search(querys,5,term);
 
         Set<String> keys = rankedDocuments.keySet();
          return new ArrayList<String>(keys);
@@ -267,7 +367,7 @@ public class LyricsController {
     /**
      * Display the execution time till present.
      */
-    private static void displayTime() {
+    private static void displayTime(long startTime) {
         System.out.println();
         System.out.println("Execution time: " + ((long) System.currentTimeMillis() - startTime) / 1000f + " sec");
     }

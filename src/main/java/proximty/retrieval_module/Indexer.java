@@ -117,7 +117,7 @@ public class Indexer {
 	 * @param supportPrxoimitySearch
 	 *            : true if proximity search enabled
 	 */
-	public void generate(int n, boolean supportPrxoimitySearch,String[] term_list) {
+	public void generate(int n, boolean supportPrxoimitySearch,String[] term_list,String metadata) {
 
 		// Initialize data structures
 		invertedIndex.clear();
@@ -130,49 +130,59 @@ public class Indexer {
 		invertedIndexFileName = this.indexDirectory + File.separator + this.invertedIndex.getName();
 		metaDataFileName = this.indexDirectory + File.separator + this.metadataName;
 
-		if (this.isCreated()) {
-
-			// Create inverted index from present file.
+		 //Create inverted index from present file.
 
 			this.invertedIndexFile = TextFile.getFile(invertedIndexFileName, Constants.EXTENSION_TXT);
 			this.metaDataFile = TextFile.getFile(metaDataFileName, Constants.EXTENSION_TXT);
 
 			this.invertedIndex.createFromFile(invertedIndexFile,term_list);
-			this.metaData.creatFromFile(metaDataFile);
+			this.metaData.creatFromFile(metaDataFile,metadata);
 			this.totalNoOfTokens = this.metaData.get(TOTAL_TOKENS);
 			this.corpusSize = this.metaData.get(CORPUS_SIZE);
 
-		} else {
-
-			// Create inverted index from corpus.
-
-			setNgramLength(n);
-
-			// Input: File representing the corpus directory
-			File corpus = TextFile.getFile(Constants.INDEXER_DATA_PATH, "");
-
-			executionState = true;
-
-			// For each file in corpus update the invertedIndex
-			for (File file : corpus.listFiles()) {
-				setDocID(file.getName().replaceAll("(.txt)$", ""));
-				fileContent = TextFile.getFileContent(file);
-				generateIndexer(fileContent, supportPrxoimitySearch);
-			}
-
-			this.corpusSize = corpus.listFiles().length;
-
-			if (this.corpusSize > 0) {
-				// Save inverted index on disk
-				invertedIndex.saveFile(indexDirectory);
-
-				metaData.add(CORPUS_SIZE, this.corpusSize);
-				metaData.add(TOTAL_TOKENS, this.totalNoOfTokens);
-				// Save metaData on disk
-				metaData.saveFile(metadataName, indexDirectory);
-			}
-
-		}
+//		if (this.isCreated()) {
+//
+//			// Create inverted index from present file.
+//
+//			this.invertedIndexFile = TextFile.getFile(invertedIndexFileName, Constants.EXTENSION_TXT);
+//			this.metaDataFile = TextFile.getFile(metaDataFileName, Constants.EXTENSION_TXT);
+//
+//			this.invertedIndex.createFromFile(invertedIndexFile,term_list);
+//			this.metaData.creatFromFile(metaDataFile);
+//			this.totalNoOfTokens = this.metaData.get(TOTAL_TOKENS);
+//			this.corpusSize = this.metaData.get(CORPUS_SIZE);
+//
+//		} else {
+//
+//			// Create inverted index from corpus.
+//
+//			setNgramLength(n);
+//
+//			// Input: File representing the corpus directory
+//			File corpus = TextFile.getFile(Constants.INDEXER_DATA_PATH, "");
+//
+//			executionState = true;
+//
+//			// For each file in corpus update the invertedIndex
+//			for (File file : corpus.listFiles()) {
+//				setDocID(file.getName().replaceAll("(.txt)$", ""));
+//				fileContent = TextFile.getFileContent(file);
+//				generateIndexer(fileContent, supportPrxoimitySearch);
+//			}
+//
+//			this.corpusSize = corpus.listFiles().length;
+//
+//			if (this.corpusSize > 0) {
+//				// Save inverted index on disk
+//				invertedIndex.saveFile(indexDirectory);
+//
+//				metaData.add(CORPUS_SIZE, this.corpusSize);
+//				metaData.add(TOTAL_TOKENS, this.totalNoOfTokens);
+//				// Save metaData on disk
+//				metaData.saveFile(metadataName, indexDirectory);
+//			}
+//
+//		}
 
 	}
 

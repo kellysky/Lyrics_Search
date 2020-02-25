@@ -6,6 +6,7 @@ import uk.edi.ttds.lyrics.entity.Song;
 import uk.edi.ttds.lyrics.mapper.SingerMapper;
 import uk.edi.ttds.lyrics.service.SingerService;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -16,5 +17,14 @@ public class SingerServiceImpl implements SingerService {
     @Override
     public List<Song> findSongsBySinger(String singer) {
         return singerMapper.findSongsBySinger(singer);
+    }
+
+//    @Override
+//    public Song findSongById(String id) {
+//        return singerMapper.findSongById(id);
+//    }
+    @Override
+    public ArrayList<Song> findSongById(ArrayList<String> list_id) {
+        return singerMapper.findSongById(list_id);
     }
 }

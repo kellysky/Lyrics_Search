@@ -95,27 +95,36 @@ public class MetaData extends LinkedHashMap<String, Integer> {
 	/**
 	 * Create a MetaData from the given file.
 	 */
-	public void creatFromFile(File metaDataFile) {
+	public void creatFromFile(File metaDataFile,String metadata) {
 
-		try {
-			fileContent = new BufferedReader(new FileReader(metaDataFile));
-			String line = fileContent.readLine();
-
-			while (line != null) {
-				StringTokenizer stringTokenizer = new StringTokenizer(line,
-						" ");
+		String[] metadata_list=metadata.split(",");
+		for (int i=0;i<metadata_list.length;i++){
+			metadata_list[i].replace(",","");
+			StringTokenizer stringTokenizer = new StringTokenizer(metadata_list[i]," ");
 				String key = stringTokenizer.nextToken();
 				int value = Integer.valueOf(stringTokenizer.nextToken());
 				this.put(key, value);
-				
-				line = fileContent.readLine();
-			}
-
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
 		}
+
+//		try {
+//			fileContent = new BufferedReader(new FileReader(metaDataFile));
+//			String line = fileContent.readLine();
+//
+//			while (line != null) {
+//				StringTokenizer stringTokenizer = new StringTokenizer(line,
+//						" ");
+//				String key = stringTokenizer.nextToken();
+//				int value = Integer.valueOf(stringTokenizer.nextToken());
+//				this.put(key, value);
+//
+//				line = fileContent.readLine();
+//			}
+//
+//		} catch (FileNotFoundException e) {
+//			e.printStackTrace();
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
 
 	}
 

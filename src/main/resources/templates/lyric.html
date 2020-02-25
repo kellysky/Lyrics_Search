@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+	<title>lyric</title>
+
+	<meta charset="utf-8">
+	<link rel="stylesheet" href="/bootstrap-3.3.7-dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/demo.css">
+    <script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+    <script src="/bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>
+</head>
+<body>
+	<section class="showcase">
+	    <div class="container-fluid p-0">
+	      <div class="row no-gutters">
+
+	        <div class="text-white showcase-img" style="background-image: url('img/bg-masthead1.jpg');"></div>
+	        <div class="my-auto showcase-text text-center">
+	          <h3 class="text-center" th:text="${song_name}"></h3>
+	          <p class="text-center" th:text="${singer}"></p>
+	          <p class="lead mb-0 text-center">
+				  <div th:each="lyric:${Lyrics}">
+				[[${lyric}]]<br>
+			</div>
+
+	          	
+	          </p>
+	        </div>
+	      </div>
+	      </div>
+	    </div>
+	</section>
+</body>
+</html>
