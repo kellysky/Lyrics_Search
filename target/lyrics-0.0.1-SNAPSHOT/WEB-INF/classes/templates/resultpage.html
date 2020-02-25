@@ -1,0 +1,169 @@
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.w3.org/1999/xhtml">
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title></title>
+    <meta charset="utf-8"> 
+    <link rel="stylesheet" href="/bootstrap-3.3.7-dist/css/bootstrap.min.css">
+    <!-- <link rel="stylesheet" href="ventor/bootstrap/css/bootstrap.min.css"> -->
+    <link rel="stylesheet" href="css/demo.css">
+    <script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+    <script src="/bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>
+</head>
+<body>
+<div class="container bootstrap snippet">
+    <div class="container col-lg-12">
+         <h2 ><span th:text="${result_size}"></span>&nbsp; results found for&nbsp;<span th:text="${user_query}" class="text-navy"></span>
+        </h2>
+        <small>Request time  (0.23 seconds)</small>
+
+        <div class="search-form">
+            <form action="query.action" method="post">
+                <div class="input-group">
+                    <input type="text" id="query"  name="query"  placeholder="Search Chinese lyrics in your mind"  class="form-control input-lg">
+                    <div class="input-group-btn">
+                        <button class="btn btn-lg btn-primary" type="submit">
+                            Search
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+    </div>
+    <div class="col-lg-9">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-content">
+                    
+                    <div class="hr-line-dashed"></div>
+
+
+                    <div th:each="song:${song_list}">
+                    <div class="search-result">
+                        <form  action="showLyrics.action" method="post">
+                                                    <input type="hidden" name="song_id" th:value="${song.id}">
+                            <input type="hidden" name="postquery" th:value="${user_query}">
+                        <h3><button type="submit" th:text="${song.song_name}"></button></h3>
+                                                </form>
+                        <a href="#" class="search-link">[[${song.singer}]]</a>
+                        <p>
+                            [[${song.real_content}]]
+                        </p>
+                    </div>
+                    </div>
+
+                    <div th:if="${page_num<=10}" class="text-center">
+
+                        <ul th:each="i: ${#numbers.sequence(1, page_num)}" class="pagination pagination-sm">
+                            <form method="post" action="transferpage.action" accept-charset="UTF-8">
+                                <input type="hidden" name="page" th:value="${i}">
+                                <input type="hidden" name="truequery" th:value="${user_query}">
+                                <button type="submit" >
+                                <li  th:text="${i}"></li>
+                                </button>
+                            </form>
+                        </ul>
+
+
+                    </div>
+                    <div th:if="${page_num>10}">
+                        <ul th:each="i: ${#numbers.sequence(1, 10)}" class="pagination pagination-sm">
+                            <form method="post" action="transferpage.action" accept-charset="UTF-8">
+                                <input type="hidden" name="page" th:value="${i}">
+                                <input type="hidden" name="truequery" th:value="${user_query}">
+                                <button type="submit" >
+                                    <li  th:text="${i}"></li>
+                                </button>
+                            </form>
+                        </ul>
+
+                        <ul th:if="${page_num>10}" class="pagination pagination-sm">
+                            <form>
+                                <input type="hidden" name="page">
+                                <li >...</li>
+                            </form>
+                        </ul>
+
+                        <ul th:if="${page_num>10}" class="pagination pagination-sm">
+                            <form  method="post" action="transferpage.action" accept-charset="UTF-8">
+                                <input type="hidden" name="page" th:value="${page_num}">
+                                <input type="hidden" name="truequery" th:value="${user_query}">
+                                <button type="submit" >
+                                    <li  th:text="${page_num}"></li>
+                                </button>
+                            </form>
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="col-lg-3">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-content">
+                    <p class="listlabel">Similar songs : </p>
+                    <div class="search-recomm">
+                        <h3><a href="#">晴天-周杰伦</a></h3>
+                        <!-- <a href="#" class="search-link">周杰伦</a> -->
+                    </div>
+
+                    <div class="search-recomm">
+                        <h3><a href="#">花花世界-蔡依林</a></h3>
+                        <!-- <a href="#" class="search-link">蔡依林</a> -->
+                    </div>
+
+                    <div class="search-recomm">
+                        <h3><a href="#">水乡-毛不易</a></h3>
+                        <!-- <a href="#" class="search-link">毛不易</a> -->
+                    </div>
+
+                    <div class="search-recomm">
+                        <h3><a href="#">野风-林忆莲</a></h3>
+                        <!-- <a href="#" class="search-link">林忆莲</a> -->
+                    </div>
+                     <div class="search-recomm">
+                        <h3><a href="#">晴天-周杰伦</a></h3>
+                        <!-- <a href="#" class="search-link">周杰伦</a> -->
+                    </div>
+
+                    <div class="search-recomm">
+                        <h3><a href="#">花花世界-蔡依林</a></h3>
+                        <!-- <a href="#" class="search-link">蔡依林</a> -->
+                    </div>
+
+                    <div class="search-recomm">
+                        <h3><a href="#">水乡-毛不易</a></h3>
+                        <!-- <a href="#" class="search-link">毛不易</a> -->
+                    </div>
+
+                    <div class="search-recomm">
+                        <h3><a href="#">野风-林忆莲</a></h3>
+                        <!-- <a href="#" class="search-link">林忆莲</a> -->
+                    </div> <div class="search-recomm">
+                        <h3><a href="#">晴天-周杰伦</a></h3>
+                        <!-- <a href="#" class="search-link">周杰伦</a> -->
+                    </div>
+
+                    <div class="search-recomm">
+                        <h3><a href="#">花花世界-蔡依林</a></h3>
+                        <!-- <a href="#" class="search-link">蔡依林</a> -->
+                    </div>
+
+                    
+                   
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+                    
+</body>
+</html>
