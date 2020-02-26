@@ -109,55 +109,18 @@
             <div class="ibox float-e-margins">
                 <div class="ibox-content">
                     <p class="listlabel">Similar songs : </p>
-                    <div class="search-recomm">
-                        <h3><a href="#">晴天-周杰伦</a></h3>
-                        <!-- <a href="#" class="search-link">周杰伦</a> -->
+
+
+                    <div th:each="song:${similarity_song}" class="search-recomm">
+                        <form action="showSimilarity.action" method="post">
+                            <input type="hidden" name="similarity_id" th:value="${song.id}">
+                            <input type="hidden" name="postquery_id" th:value="${user_query}">
+                        <h3><a href="#">[[${song.singer}]] - </a>
+                            <button type="submit" th:text="${song.song_name}"></button></h3>
+                        </form>
                     </div>
 
-                    <div class="search-recomm">
-                        <h3><a href="#">花花世界-蔡依林</a></h3>
-                        <!-- <a href="#" class="search-link">蔡依林</a> -->
-                    </div>
 
-                    <div class="search-recomm">
-                        <h3><a href="#">水乡-毛不易</a></h3>
-                        <!-- <a href="#" class="search-link">毛不易</a> -->
-                    </div>
-
-                    <div class="search-recomm">
-                        <h3><a href="#">野风-林忆莲</a></h3>
-                        <!-- <a href="#" class="search-link">林忆莲</a> -->
-                    </div>
-                     <div class="search-recomm">
-                        <h3><a href="#">晴天-周杰伦</a></h3>
-                        <!-- <a href="#" class="search-link">周杰伦</a> -->
-                    </div>
-
-                    <div class="search-recomm">
-                        <h3><a href="#">花花世界-蔡依林</a></h3>
-                        <!-- <a href="#" class="search-link">蔡依林</a> -->
-                    </div>
-
-                    <div class="search-recomm">
-                        <h3><a href="#">水乡-毛不易</a></h3>
-                        <!-- <a href="#" class="search-link">毛不易</a> -->
-                    </div>
-
-                    <div class="search-recomm">
-                        <h3><a href="#">野风-林忆莲</a></h3>
-                        <!-- <a href="#" class="search-link">林忆莲</a> -->
-                    </div> <div class="search-recomm">
-                        <h3><a href="#">晴天-周杰伦</a></h3>
-                        <!-- <a href="#" class="search-link">周杰伦</a> -->
-                    </div>
-
-                    <div class="search-recomm">
-                        <h3><a href="#">花花世界-蔡依林</a></h3>
-                        <!-- <a href="#" class="search-link">蔡依林</a> -->
-                    </div>
-
-                    
-                   
                 </div>
             </div>
         </div>

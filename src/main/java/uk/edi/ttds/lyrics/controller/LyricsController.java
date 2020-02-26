@@ -37,11 +37,13 @@ import java.util.*;
 @Controller
 @RequestMapping("/search")
 public class LyricsController {
-    private String  preprocess_url="http://8.209.68.61:5000/api/preprocess";
+    private String  preprocess_url="http://127.0.0.1:5000/api/preprocess";
 
-    private String index_url="http://8.209.68.61:5000/api/index";
+    private String index_url="http://127.0.0.1:5000/api/index";
 
-    private String metadata_url="http://8.209.68.61:5000/api/metadata";
+    private String metadata_url="http://127.0.0.1:5000/api/metadata";
+
+    private String similarity_url="http://172.20.10.8:5000/api/similarity";
 
     //private static long startTime = System.currentTimeMillis();
 
@@ -69,13 +71,19 @@ public class LyricsController {
 
     public ArrayList<Song> result_single_page;
 
+    public ArrayList<Song> similarity_song;
+
     public int page_num;
 
     public int result_size;
 
     public String user_query;
 
+    public String  metadata=null;
+
     public static HashMap<String,ArrayList<Song>> map=new HashMap<>();
+    public static HashMap<String,ArrayList<Song>> similarity_map=new HashMap<>();
+
 
 
     @RequestMapping(value="/index")
@@ -103,6 +111,7 @@ public class LyricsController {
         ArrayList<String> result=new ArrayList<>();
         final_result=new ArrayList<>();
         result_single_page=new ArrayList<>();
+        similarity_song=new ArrayList<>();
 
 
 
@@ -114,7 +123,7 @@ public class LyricsController {
 
         for(int i=0;i<list.length;i++){
             songs= (ArrayList<Song>) singerService.findSongsBySinger(list[i]);
-            displayTime(start);
+
             if (!songs.isEmpty()){
                 for(int j=0;j<songs.size();j++){
                     if (!singer_set.contains(songs.get(j)))singer_set.add(songs.get(j));
@@ -135,7 +144,7 @@ public class LyricsController {
         }
         song_set=collect_songs(singer_set,song_name_set);
 
-        //displayTime(start);
+
 
 
         /*
@@ -152,18 +161,26 @@ public class LyricsController {
 
        if (temp_query!="") {
 
+
+
            String term = query_preprocess(temp_query, preprocess_url);
+
+
            String regex="[,\"\"]+";
            term=term.replaceAll(regex," ");
            term=term.replaceAll("[\\[\\]]","");
            term=term.trim();
 
+           start=System.currentTimeMillis();
            //index list
            String[] term_list = create_index(term, index_url);
 
 
            //metada list
-           String metadata=create_metadata(metadata_url);
+           if (metadata==null) {
+               metadata = create_metadata(metadata_url);
+           }
+
 
 
            // Querys containing all the query present in the file at the location
@@ -183,14 +200,15 @@ public class LyricsController {
                result = lyrics_set;
            }
 
-           start=System.currentTimeMillis();
+//           start=System.currentTimeMillis();
 
            if (result.size()!=0) {
                final_result = singerService.findSongById(result);
            }
-           displayTime(start);
+
 
        }else {
+           start=System.currentTimeMillis();
            if (song_set.size()==0){
                if (singer_set.size()>song_name_set.size()){
                    for (int i=0;i<song_name_set.size();i++){
@@ -214,7 +232,18 @@ public class LyricsController {
            for (int i = 0; i < song_set.size(); i++) {
                final_result.add(song_set.get(i));
            }
+
        }
+
+
+
+
+       //get similarity songs
+        if (final_result.size()!=0) {
+            similarity_song = get_Similarity_Song(String.valueOf(final_result.get(0).id), similarity_url);
+        }
+       //System.out.println(final_result.get(0).id);
+
 
        page_num=final_result.size()/4+1;
        if (final_result.size()>4) {
@@ -226,18 +255,27 @@ public class LyricsController {
            modelAndView.addObject("song_list",final_result);
        }
 
+
+
+
        result_size=final_result.size();
+       modelAndView.addObject("similarity_song",similarity_song);
        modelAndView.addObject("page_num",page_num);
         modelAndView.addObject("result_size",result_size);
         modelAndView.addObject("user_query",user_query);
        modelAndView.setViewName("resultpage");
+       displayTime(startTime,"total time");
 
-        displayTime(startTime);
         if (map.containsKey(user_query)) {
             map.remove(user_query);
 
         }
         map.put(user_query, final_result);
+
+        if (similarity_map.containsKey(user_query)){
+            similarity_map.remove(user_query);
+        }
+        similarity_map.put(user_query,similarity_song);
        return modelAndView;
     }
 
@@ -246,6 +284,7 @@ public class LyricsController {
     public ModelAndView transfer_page(@RequestParam(value = "page")String page,@RequestParam(value ="truequery")String truequery){
         modelAndView=new ModelAndView();
         final_result=map.get(truequery);
+        similarity_song=similarity_map.get(truequery);
 
 
 
@@ -260,7 +299,7 @@ public class LyricsController {
             }
         }
 
-
+        modelAndView.addObject("similarity_song",similarity_song);
         modelAndView.addObject("song_list",result_single_page);
         modelAndView.addObject("page_num",page_num);
         modelAndView.addObject("user_query",truequery);
@@ -269,13 +308,39 @@ public class LyricsController {
         return modelAndView;
     }
 
+    @RequestMapping(value = "showSimilarity.action",method = RequestMethod.POST)
+    @ResponseBody
+    public ModelAndView showSimilarity(@RequestParam(value = "similarity_id")String similarity_id,@RequestParam(value = "postquery_id")String postquery_id){
+        modelAndView=new ModelAndView();
+        similarity_song=new ArrayList<>();
+        //System.out.println(similarity_id+postquery_id);
+        similarity_song=similarity_map.get(postquery_id);
+       // System.out.println(similarity_song.size());
+        for (int i=0;i<similarity_song.size();i++){
+
+            if (similarity_song.get(i).getId()==Integer.valueOf(similarity_id)) {
+                String[] lyrics = similarity_song.get(i).getReal_content().split("\\s+");
+                //System.out.println(similarity_song.get(i).getReal_content());
+                modelAndView.addObject("Lyrics", lyrics);
+                modelAndView.addObject("singer", similarity_song.get(i).getSinger());
+                modelAndView.addObject("song_name", similarity_song.get(i).getSong_name());
+                break;
+            }
+        }
+        modelAndView.setViewName("lyric");
+        return modelAndView;
+    }
+
     @RequestMapping(value = "showLyrics.action",method = RequestMethod.POST)
     @ResponseBody
     public ModelAndView showLyrics(@RequestParam(value = "song_id")String song_id,@RequestParam(value ="postquery")String postquery){
         modelAndView=new ModelAndView();
+        final_result=new ArrayList<>();
         final_result=map.get(postquery);
+
         for (int i=0;i<final_result.size();i++){
             if (final_result.get(i).getId()==Integer.parseInt(song_id)){
+                System.out.println(final_result.get(i).getSong_name());
                 String[] lyrics=final_result.get(i).getReal_content().split(" ");
                 modelAndView.addObject("Lyrics",lyrics);
                 modelAndView.addObject("singer",final_result.get(i).getSinger());
@@ -283,6 +348,7 @@ public class LyricsController {
                 break;
             }
         }
+
         modelAndView.setViewName("lyric");
         return modelAndView;
     }
@@ -335,7 +401,7 @@ public class LyricsController {
         return  term_list;
     }
 
-    //tis fucntion is to generate all metadata list from python api
+    //this fucntion is to generate all metadata list from python api
     private String create_metadata(String metadata_url){
         String metadata=null;
 
@@ -354,6 +420,43 @@ public class LyricsController {
         return metadata;
     }
 
+    //this function can provide some similarity songs
+    private ArrayList<Song> get_Similarity_Song(String song_id,String url){
+        ArrayList<Song> similarity_songs=new ArrayList<>();
+
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+        JSONObject param = new JSONObject();
+        param.put("query" ,song_id);
+
+        HttpEntity<String> entity = new HttpEntity<>(param.toJSONString(), httpHeaders);
+        HttpEntity<String> response = restTemplate.exchange(url, HttpMethod.POST , entity , String.class);
+        JSONObject jsonObject=JSON.parseObject(response.getBody());
+
+        String term=jsonObject.getString("ans");
+        String[] list=term.split("\\n");
+        //System.out.println(term);
+        for (int i=1;i<list.length;i++){
+            String lyric=list[i].replace("\\n","");
+            String[] properties=lyric.split("\\s+");
+            if (!properties[1].equals(song_id)) {
+                Song song = new Song();
+                song.setId(Integer.valueOf(properties[1]));
+                song.setSong_name(properties[3]);
+                song.setSinger(properties[2]);
+                lyric = "";
+                for (int j = 4; j < properties.length; j++) {
+                    lyric += properties[j] + " ";
+                }
+                song.setReal_content(lyric);
+                song.setContent(properties[4]);
+                similarity_songs.add(song);
+            }
+        }
+
+        return similarity_songs;
+    }
+
     private static ArrayList<String> runSearchEngine(Querys querys, RetrievalModel model,String term,String[] term_list,String metadata) {
 
         SearchEngine searchEngine = new SearchEngine(model,term_list,metadata);
@@ -367,9 +470,10 @@ public class LyricsController {
     /**
      * Display the execution time till present.
      */
-    private static void displayTime(long startTime) {
+    private static void displayTime(long startTime,String name) {
         System.out.println();
-        System.out.println("Execution time: " + ((long) System.currentTimeMillis() - startTime) / 1000f + " sec");
+        long timeConsume = System.currentTimeMillis() - startTime;
+        System.out.println(name+" Execution time: " + ((long) System.currentTimeMillis() - startTime) / 1000f + " sec");
     }
 
 
